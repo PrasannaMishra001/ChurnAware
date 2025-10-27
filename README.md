@@ -1,49 +1,18 @@
-# Blinkit Retention Project
+# 🛒 Blinkit Retention Project
 
-This repository implements the R+FMD segmentation and sentiment-aware churn prediction pipeline for Blinkit-like e-grocery dataset.
+**Short Abstract:**  
+This project implements a **segmentation and churn prediction pipeline** for a Blinkit-like e-grocery dataset. It combines **Recency-Frequency-Monetary (R+FMD) segmentation** with **sentiment-aware churn prediction**, helping businesses identify customers at risk of leaving and understand behavioral patterns.
 
-## Project structure
-(see full structure in README)
+---
 
-## Quickstart
-1. Put the dataset CSVs in the `data/` folder (names must match).
-2. Create a Python environment and install requirements:
+## ⚡ Quick Setup
 
-pip install -r requirements.txt
-
-3. Run segmentation pipeline:
-
-
-python src/train_segmentation.py
-
-4. Run churn training:
-
-
-python src/train_churn.py
-
-5. Run the dashboard:
-
-
-streamlit run src/dashboard.py
-
-
-## Notes
-- Default churn threshold = 90 days. Changeable in `train_churn.py` or `Mymodules/modeling.py`.
-- Segmentation uses GaussianMixture (GMM). Adjust components via CLI or script.
-
-# Clone repo
-git clone https://github.com/PrasannaMishra001/ChurnAware.git
-cd ChurnAware
-
-# Create virtual environment
+```bash
+git clone https://github.com/<your-username>/churnaware.git
+cd churnaware
 python -m venv venv
-# Activate venv (Windows)
-venv\Scripts\activate
-# Activate venv (Mac/Linux)
-# source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run Streamlit dashboard
-streamlit run src/dashboard.py
+python -m pip install --upgrade pip
+venv\Scripts\activate     # Windows
+# source venv/bin/activate  # Linux/Mac
+python -m pip install -r requirements.txt
+python -m streamlit run src/dashboard.py
