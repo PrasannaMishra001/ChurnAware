@@ -1,0 +1,74 @@
+{
+  "classification_report": {
+    "0": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 127.0
+    },
+    "1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 373.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 500.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 500.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      127,
+      0
+    ],
+    [
+      0,
+      373
+    ]
+  ],
+  "roc_auc_score": 1.0,
+  "feature_importance": [
+    {
+      "feature": "recency_days",
+      "importance": 0.7808016396705416
+    },
+    {
+      "feature": "frequency",
+      "importance": 0.06055514789453802
+    },
+    {
+      "feature": "monetary",
+      "importance": 0.05175184003647449
+    },
+    {
+      "feature": "avg_order_value",
+      "importance": 0.04475405655315179
+    },
+    {
+      "feature": "avg_rating",
+      "importance": 0.03397085503322547
+    },
+    {
+      "feature": "delivery_ratio",
+      "importance": 0.01744968334207153
+    },
+    {
+      "feature": "negative_feedback_count",
+      "importance": 0.0057307274359500535
+    },
+    {
+      "feature": "avg_sentiment",
+      "importance": 0.0049860500340469975
+    }
+  ]
+}

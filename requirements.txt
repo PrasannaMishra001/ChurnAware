@@ -5,3 +5,4 @@ joblib>=1.2
 streamlit>=1.22
 matplotlib>=3.5
 seaborn>=0.12
+plotly==5.18.0
