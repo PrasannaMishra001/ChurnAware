@@ -11,7 +11,7 @@ def run_gmm_segmentation(features_df, n_components=4, random_state=42,
     df = features_df.copy()
     
     if features_for_clustering is None:
-        features_for_clustering = ['frequency', 'monetary', 'delivery_ratio']
+        features_for_clustering = ['frequency', 'monetary', 'on_time_ratio']
 
     X = df[features_for_clustering].fillna(0).values
     scaler = StandardScaler()
@@ -32,7 +32,7 @@ def run_gmm_segmentation(features_df, n_components=4, random_state=42,
             'size': int(cluster_mask.sum()),
             'mean_frequency': float(cluster_data['frequency'].mean()),
             'mean_monetary': float(cluster_data['monetary'].mean()),
-            'mean_delivery_ratio': float(cluster_data['delivery_ratio'].mean()),
+            'mean_on_time_ratio': float(cluster_data['on_time_ratio'].mean()),
             'mean_avg_order_value': float(cluster_data['avg_order_value'].mean()),
             'mean_negative_feedback': float(cluster_data['negative_feedback_count'].mean())
         })
@@ -40,9 +40,9 @@ def run_gmm_segmentation(features_df, n_components=4, random_state=42,
     profile_df = pd.DataFrame(cluster_profile)
     
     profile_df['composite_score'] = (
-        profile_df['mean_monetary'] * 0.5 + 
-        profile_df['mean_frequency'] * 0.3 + 
-        profile_df['mean_delivery_ratio'] * 0.2
+        profile_df['mean_monetary'] * 0.5 +
+        profile_df['mean_frequency'] * 0.3 +
+        profile_df['mean_on_time_ratio'] * 0.2
     )
     profile_df = profile_df.sort_values('composite_score', ascending=False).reset_index(drop=True)
     

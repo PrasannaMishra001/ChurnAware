@@ -1,74 +1,113 @@
 {
+  "evaluation": "temporal holdout (features from past window, label from 90-day future window)",
+  "train_snapshots": [
+    "2023-09-01",
+    "2023-11-01",
+    "2024-01-01",
+    "2024-03-01",
+    "2024-05-01"
+  ],
+  "test_snapshots": [
+    "2024-07-01"
+  ],
+  "train_rows": 3793,
+  "test_rows": 1574,
+  "train_churn_rate": 0.7321381492222515,
+  "test_churn_rate": 0.7547649301143583,
   "classification_report": {
     "0": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 127.0
+      "precision": 0.35294117647058826,
+      "recall": 0.27979274611398963,
+      "f1-score": 0.31213872832369943,
+      "support": 386.0
     },
     "1": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 373.0
+      "precision": 0.7807570977917981,
+      "recall": 0.8333333333333334,
+      "f1-score": 0.8061889250814332,
+      "support": 1188.0
     },
-    "accuracy": 1.0,
+    "accuracy": 0.6975857687420585,
     "macro avg": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 500.0
+      "precision": 0.5668491371311932,
+      "recall": 0.5565630397236615,
+      "f1-score": 0.5591638267025664,
+      "support": 1574.0
     },
     "weighted avg": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 500.0
+      "precision": 0.6758416304284011,
+      "recall": 0.6975857687420585,
+      "f1-score": 0.6850304905525353,
+      "support": 1574.0
     }
   },
   "confusion_matrix": [
     [
-      127,
-      0
+      108,
+      278
     ],
     [
-      0,
-      373
+      198,
+      990
     ]
   ],
-  "roc_auc_score": 1.0,
+  "roc_auc_score": 0.5899495821775614,
   "feature_importance": [
     {
-      "feature": "recency_days",
-      "importance": 0.7808016396705416
-    },
-    {
-      "feature": "frequency",
-      "importance": 0.06055514789453802
+      "feature": "avg_order_value",
+      "importance": 0.17706709465714215
     },
     {
       "feature": "monetary",
-      "importance": 0.05175184003647449
+      "importance": 0.15914164704405478
     },
     {
-      "feature": "avg_order_value",
-      "importance": 0.04475405655315179
+      "feature": "recency_days",
+      "importance": 0.1536754034267193
+    },
+    {
+      "feature": "avg_text_sentiment",
+      "importance": 0.11480180328090808
+    },
+    {
+      "feature": "orders_per_month",
+      "importance": 0.08315394710664033
+    },
+    {
+      "feature": "customer_lifespan_days",
+      "importance": 0.07363947338614055
     },
     {
       "feature": "avg_rating",
-      "importance": 0.03397085503322547
-    },
-    {
-      "feature": "delivery_ratio",
-      "importance": 0.01744968334207153
-    },
-    {
-      "feature": "negative_feedback_count",
-      "importance": 0.0057307274359500535
+      "importance": 0.06559054284364683
     },
     {
       "feature": "avg_sentiment",
-      "importance": 0.0049860500340469975
+      "importance": 0.04174452141359307
+    },
+    {
+      "feature": "avg_delay_score",
+      "importance": 0.03739108810765859
+    },
+    {
+      "feature": "on_time_ratio",
+      "importance": 0.03178162707382411
+    },
+    {
+      "feature": "text_negative_count",
+      "importance": 0.019328494943049588
+    },
+    {
+      "feature": "frequency",
+      "importance": 0.014448747031085559
+    },
+    {
+      "feature": "count_feedback",
+      "importance": 0.0144021818634835
+    },
+    {
+      "feature": "negative_feedback_count",
+      "importance": 0.013833427822053585
     }
   ]
 }

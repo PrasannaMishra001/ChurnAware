@@ -31,23 +31,26 @@ def compute_R_F_M_D(customers_df, orders_df, order_items_df, as_of_date=None, sa
 
     agg['recency_days'] = (as_of_date - agg['last_order_date']).dt.days.clip(lower=0)
 
-    delivered_status = {'On Time', 'Slightly Delayed', 'Significantly Delayed'}
-    orders_df['delivered_flag'] = orders_df['delivery_status'].apply(
-        lambda x: 1 if str(x).strip() in delivered_status else 0
-    )
-    
-    delivered = orders_df.groupby('customer_id')['delivered_flag'].sum().reset_index()
-    delivered.columns = ['customer_id', 'delivered_orders']
-    
-    agg = agg.merge(delivered, on='customer_id', how='left')
-    agg['delivered_orders'] = agg['delivered_orders'].fillna(0)
-    
-    agg['delivery_ratio'] = np.where(
+    delay_weights = {'On Time': 0.0, 'Slightly Delayed': 0.5, 'Significantly Delayed': 1.0}
+    status = orders_df['delivery_status'].astype(str).str.strip()
+    orders_df['on_time_flag'] = (status == 'On Time').astype(int)
+    orders_df['delay_score'] = status.map(delay_weights).fillna(1.0)
+
+    delivery = orders_df.groupby('customer_id').agg(
+        on_time_orders=('on_time_flag', 'sum'),
+        avg_delay_score=('delay_score', 'mean')
+    ).reset_index()
+
+    agg = agg.merge(delivery, on='customer_id', how='left')
+    agg['on_time_orders'] = agg['on_time_orders'].fillna(0)
+    agg['avg_delay_score'] = agg['avg_delay_score'].fillna(0)
+
+    agg['on_time_ratio'] = np.where(
         agg['total_orders'] > 0,
-        agg['delivered_orders'] / agg['total_orders'],
+        agg['on_time_orders'] / agg['total_orders'],
         0
     )
-    agg['delivery_ratio'] = agg['delivery_ratio'].clip(0, 1)
+    agg['on_time_ratio'] = agg['on_time_ratio'].clip(0, 1)
 
     agg['avg_order_value'] = np.where(
         agg['total_orders'] > 0,
@@ -71,9 +74,9 @@ def compute_R_F_M_D(customers_df, orders_df, order_items_df, as_of_date=None, sa
     if 'total_orders_old' in out.columns:
         out = out.drop(columns=['total_orders_old'])
 
-    numeric_cols = ['frequency', 'monetary', 'recency_days', 'delivery_ratio', 
-                    'avg_order_value', 'total_orders', 'delivered_orders', 
-                    'customer_lifespan_days', 'orders_per_month']
+    numeric_cols = ['frequency', 'monetary', 'recency_days', 'on_time_ratio',
+                    'avg_delay_score', 'avg_order_value', 'total_orders',
+                    'on_time_orders', 'customer_lifespan_days', 'orders_per_month']
     
     for col in numeric_cols:
         if col not in out.columns:
@@ -92,18 +95,27 @@ def compute_R_F_M_D(customers_df, orders_df, order_items_df, as_of_date=None, sa
 
 
 def aggregate_feedback_features(feedback_df):
+    from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
     df = feedback_df.copy()
     df['feedback_date'] = pd.to_datetime(df['feedback_date'], errors='coerce')
 
     sentiment_map = {'Positive': 1, 'Neutral': 0, 'Negative': -1}
     df['sentiment_score'] = df['sentiment'].map(sentiment_map).fillna(0)
-    
+
+    analyzer = SentimentIntensityAnalyzer()
+    df['text_compound'] = df['feedback_text'].astype(str).apply(
+        lambda t: analyzer.polarity_scores(t)['compound']
+    )
+
     agg = df.groupby('customer_id').agg(
         avg_rating=('rating', 'mean'),
         count_feedback=('feedback_id', 'count'),
         negative_feedback_count=('sentiment', lambda s: (s == 'Negative').sum()),
         positive_feedback_count=('sentiment', lambda s: (s == 'Positive').sum()),
         avg_sentiment=('sentiment_score', 'mean'),
+        avg_text_sentiment=('text_compound', 'mean'),
+        text_negative_count=('text_compound', lambda s: int((s < -0.05).sum())),
         last_feedback_date=('feedback_date', 'max')
     ).reset_index()
 
@@ -126,8 +138,9 @@ def build_customer_features(customers_df, orders_df, order_items_df, feedback_df
     
     merged = features_df.merge(feedback_agg, on='customer_id', how='left')
     
-    fill_cols = ['avg_rating', 'count_feedback', 'negative_feedback_count', 
-                 'positive_feedback_count', 'avg_sentiment']
+    fill_cols = ['avg_rating', 'count_feedback', 'negative_feedback_count',
+                 'positive_feedback_count', 'avg_sentiment',
+                 'avg_text_sentiment', 'text_negative_count']
     for c in fill_cols:
         if c in merged.columns:
             merged[c] = merged[c].fillna(0)

@@ -68,7 +68,7 @@ def main():
         print(f"  Size: {row['size']:,} customers ({pct:.1f}%)")
         print(f"  Avg Frequency: {row['mean_frequency']:.2f} orders")
         print(f"  Avg Monetary: Rs.{row['mean_monetary']:,.2f}")
-        print(f"  Avg Delivery Ratio: {row['mean_delivery_ratio']:.1%}")
+        print(f"  Avg On-Time Ratio: {row['mean_on_time_ratio']:.1%}")
         if 'mean_avg_order_value' in row:
             print(f"  Avg Order Value: Rs.{row['mean_avg_order_value']:,.2f}")
     

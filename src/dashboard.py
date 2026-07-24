@@ -35,8 +35,9 @@ def load_feature_df():
     else:
         return None
     
-    numeric_cols = ['recency_days', 'frequency', 'monetary', 'delivery_ratio', 
-                   'avg_order_value', 'negative_feedback_count', 'avg_rating', 'avg_sentiment']
+    numeric_cols = ['recency_days', 'frequency', 'monetary', 'on_time_ratio', 'avg_delay_score',
+                   'avg_order_value', 'negative_feedback_count', 'avg_rating', 'avg_sentiment',
+                   'avg_text_sentiment', 'text_negative_count']
     
     for col in numeric_cols:
         if col not in df.columns:
@@ -119,11 +120,11 @@ with tabs[0]:
         
         if len(customers_with_orders) > 0:
             avg_order_value = customers_with_orders['avg_order_value'].mean()
-            avg_delivery_ratio = customers_with_orders['delivery_ratio'].mean()
+            avg_on_time_ratio = customers_with_orders['on_time_ratio'].mean()
             avg_neg_feedback = filtered_df['negative_feedback_count'].mean()
         else:
             avg_order_value = 0
-            avg_delivery_ratio = 0
+            avg_on_time_ratio = 0
             avg_neg_feedback = 0
         
         col1, col2, col3, col4 = st.columns(4)
@@ -133,7 +134,7 @@ with tabs[0]:
         with col2:
             st.metric("Avg Order Value", f"Rs. {avg_order_value:,.2f}")
         with col3:
-            st.metric("Avg Delivery Ratio", f"{avg_delivery_ratio:.1%}")
+            st.metric("Avg On-Time Ratio", f"{avg_on_time_ratio:.1%}")
         with col4:
             st.metric("Avg Negative Feedback", f"{avg_neg_feedback:.2f}")
         
@@ -190,12 +191,12 @@ with tabs[1]:
         else:
             st.info(f"Showing {len(viz_df)} customers with at least one order")
             
-            st.markdown("#### 3D Scatter: Frequency (x), Monetary (y), Delivery Ratio (z)")
-            
+            st.markdown("#### 3D Scatter: Frequency (x), Monetary (y), On-Time Ratio (z)")
+
             viz_df = viz_df[
-                (viz_df['frequency'] > 0) & 
-                (viz_df['monetary'] > 0) & 
-                (viz_df['delivery_ratio'] >= 0)
+                (viz_df['frequency'] > 0) &
+                (viz_df['monetary'] > 0) &
+                (viz_df['on_time_ratio'] >= 0)
             ].copy()
             
             if len(viz_df) < 3:
@@ -205,9 +206,9 @@ with tabs[1]:
                 
                 fig_3d = px.scatter_3d(
                     viz_df,
-                    x='frequency', 
-                    y='monetary', 
-                    z='delivery_ratio',
+                    x='frequency',
+                    y='monetary',
+                    z='on_time_ratio',
                     color='segment_name',
                     size='size_viz',
                     hover_name='customer_name',
@@ -216,7 +217,7 @@ with tabs[1]:
                         'customer_name': False,
                         'frequency': True,
                         'monetary': ':,.2f',
-                        'delivery_ratio': ':.2%',
+                        'on_time_ratio': ':.2%',
                         'avg_order_value': ':,.2f',
                         'negative_feedback_count': ':.0f',
                         'avg_rating': ':.2f',
@@ -228,7 +229,7 @@ with tabs[1]:
                     labels={
                         'frequency': 'Frequency (Orders)',
                         'monetary': 'Monetary (Rs.)',
-                        'delivery_ratio': 'Delivery Ratio'
+                        'on_time_ratio': 'On-Time Ratio'
                     }
                 )
                 
@@ -237,7 +238,7 @@ with tabs[1]:
                     scene=dict(
                         xaxis=dict(title="Frequency (Orders)", gridcolor="gray"),
                         yaxis=dict(title="Monetary (Rs.)", gridcolor="gray"),
-                        zaxis=dict(title="Delivery Ratio", gridcolor="gray"),
+                        zaxis=dict(title="On-Time Ratio", gridcolor="gray"),
                         bgcolor="black"
                     ),
                     paper_bgcolor="black",
@@ -255,27 +256,27 @@ with tabs[1]:
                 count=('customer_id', 'nunique'),
                 avg_freq=('frequency', 'mean'),
                 avg_monetary=('monetary', 'mean'),
-                avg_delivery_ratio=('delivery_ratio', 'mean'),
+                avg_on_time_ratio=('on_time_ratio', 'mean'),
                 avg_order_value=('avg_order_value', 'mean'),
                 avg_neg_feedback=('negative_feedback_count', 'mean')
             ).reset_index().sort_values('avg_monetary', ascending=False)
-            
+
             profile_display = profile.copy()
             profile_display['avg_freq'] = profile_display['avg_freq'].round(2)
             profile_display['avg_monetary'] = profile_display['avg_monetary'].apply(lambda x: f"Rs. {x:,.2f}")
-            profile_display['avg_delivery_ratio'] = profile_display['avg_delivery_ratio'].apply(lambda x: f"{x:.1%}")
+            profile_display['avg_on_time_ratio'] = profile_display['avg_on_time_ratio'].apply(lambda x: f"{x:.1%}")
             profile_display['avg_order_value'] = profile_display['avg_order_value'].apply(lambda x: f"Rs. {x:,.2f}")
             profile_display['avg_neg_feedback'] = profile_display['avg_neg_feedback'].round(2)
             
             st.dataframe(profile_display, use_container_width=True, hide_index=True)
             
             st.markdown("#### Sample Customers from Selection")
-            sample_cols = ['customer_id', 'customer_name', 'segment_name', 'frequency', 
-                          'monetary', 'delivery_ratio', 'avg_order_value', 'avg_rating', 'negative_feedback_count']
+            sample_cols = ['customer_id', 'customer_name', 'segment_name', 'frequency',
+                          'monetary', 'on_time_ratio', 'avg_order_value', 'avg_rating', 'negative_feedback_count']
             sample_df = viz_df[sample_cols].sort_values('monetary', ascending=False).head(100).copy()
-            
+
             sample_df['monetary'] = sample_df['monetary'].apply(lambda x: f"Rs. {x:,.2f}")
-            sample_df['delivery_ratio'] = sample_df['delivery_ratio'].apply(lambda x: f"{x:.1%}")
+            sample_df['on_time_ratio'] = sample_df['on_time_ratio'].apply(lambda x: f"{x:.1%}")
             sample_df['avg_order_value'] = sample_df['avg_order_value'].apply(lambda x: f"Rs. {x:,.2f}")
             
             st.dataframe(sample_df, use_container_width=True, hide_index=True)
@@ -284,10 +285,15 @@ with tabs[2]:
     st.header("Churn Prediction & At-Risk Customers")
     
     churn_model_path = os.path.join(MODELS_DIR, "churn_prediction_model.pkl")
-    features_for_model = [
-        'recency_days', 'frequency', 'monetary', 'delivery_ratio',
-        'avg_rating', 'negative_feedback_count', 'avg_sentiment', 'avg_order_value'
-    ]
+    feature_cols_path = os.path.join(MODELS_DIR, "churn_feature_cols.joblib")
+    if os.path.exists(feature_cols_path):
+        features_for_model = joblib.load(feature_cols_path)
+    else:
+        features_for_model = [
+            'recency_days', 'frequency', 'monetary', 'on_time_ratio', 'avg_delay_score',
+            'avg_rating', 'negative_feedback_count', 'avg_sentiment',
+            'avg_text_sentiment', 'text_negative_count', 'avg_order_value'
+        ]
     
     if os.path.exists(churn_model_path):
         try:

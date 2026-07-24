@@ -1,7 +1,7 @@
 __pycache__/
 *.pyc
-models/*.pkl
-models/*.joblib
+venv/
 .env
 .ipynb_checkpoints/
 .DS_Store
+models/churnaware.db

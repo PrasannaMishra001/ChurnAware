@@ -6,3 +6,8 @@ streamlit>=1.22
 matplotlib>=3.5
 seaborn>=0.12
 plotly==5.18.0
+vaderSentiment>=3.3
+torch>=2.2
+fastapi>=0.110
+uvicorn[standard]>=0.29
+sqlalchemy>=2.0
