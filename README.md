@@ -1,8 +1,8 @@
 # ChurnAware: Sentiment-Aware Churn Prediction
 
-Python, Scikit-learn, Pandas, Streamlit, FastAPI, PyTorch | September 2025 – November 2025
+Python, Scikit-learn, Pandas, PyTorch, FastAPI, Next.js, TypeScript | September 2025 – November 2025
 
-ChurnAware implements an RFM (Recency-Frequency-Monetary) segmentation pipeline on the Blinkit e-grocery dataset and builds a sentiment-aware churn prediction model that combines customer behavioral signals with review sentiment analysis. On top of the predictive layer, a deep reinforcement learning retention engine learns which retention action to take for each customer, and a REST API serves scores and recommendations for downstream applications.
+ChurnAware implements an RFM (Recency-Frequency-Monetary) segmentation pipeline on the Blinkit e-grocery dataset and builds a sentiment-aware churn prediction model that combines customer behavioral signals with review sentiment analysis. On top of the predictive layer, a deep reinforcement learning retention engine learns which retention action to take for each customer, a FastAPI REST service serves scores and recommendations, and a Next.js dashboard visualizes the whole pipeline.
 
 ## Table of Contents
 
@@ -15,6 +15,7 @@ ChurnAware implements an RFM (Recency-Frequency-Monetary) segmentation pipeline 
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [API Reference](#api-reference)
+- [Deployment](#deployment)
 - [Roadmap](#roadmap)
 - [Team](#team)
 - [License](#license)
@@ -27,7 +28,7 @@ Quick-commerce platforms lose far more revenue to silent customer churn than to 
 2. **Churn prediction.** A Random Forest classifier estimates each customer's probability of placing no order in the next 90 days. Labels are constructed with temporal snapshot windows so that no future information leaks into the features, and review sentiment extracted from raw feedback text is part of the feature set.
 3. **Retention optimization.** A Double DQN agent, trained in a customer-behavior simulator calibrated on the dataset, chooses the retention action (do nothing, push notification, free delivery, or 10 percent discount) that maximizes long-run profit net of incentive cost.
 
-All three layers are exposed through a FastAPI backend backed by SQLite, and an interactive Streamlit dashboard provides executive KPIs, 3D segment exploration, and a ranked at-risk customer list.
+All three layers are exposed through a FastAPI backend backed by SQLite. Two front ends consume it: a Next.js dashboard (shadcn/ui, Recharts, light and dark themes) with pages for portfolio KPIs, segment profiles, churn risk, and the retention engine, and an interactive Streamlit dashboard with 3D segment exploration.
 
 ## Research Background
 
@@ -64,6 +65,7 @@ flowchart TB
     subgraph Serving["Serving Layer"]
         DB[("SQLite<br/>scored customers")]
         API["FastAPI REST API"]
+        WEB["Next.js Dashboard<br/>shadcn/ui + Recharts"]
         DASH["Streamlit Dashboard"]
     end
 
@@ -75,6 +77,7 @@ flowchart TB
     GMM --> DB
     DQN --> API
     DB --> API
+    API --> WEB
     RF --> DASH
     GMM --> DASH
 ```
@@ -167,16 +170,23 @@ Churnaware/
 │       ├── policies.py            Baseline policies
 │       ├── train_agent.py         Agent training entry point
 │       └── evaluate.py            Policy comparison
-└── backend/
-    ├── app/
-    │   ├── main.py                FastAPI application
-    │   ├── ingest.py              Batch scoring into SQLite
-    │   ├── services.py            Model loading and inference
-    │   ├── schemas.py             Pydantic response models
-    │   ├── db.py                  SQLite engine
-    │   └── routers/               customers, segments, churn, retention, kpi
-    ├── Dockerfile
-    └── requirements.txt
+├── backend/
+│   ├── app/
+│   │   ├── main.py                FastAPI application
+│   │   ├── ingest.py              Batch scoring into SQLite
+│   │   ├── services.py            Model loading and inference
+│   │   ├── schemas.py             Pydantic response models
+│   │   ├── db.py                  SQLite engine
+│   │   └── routers/               customers, segments, churn, retention, kpi
+│   ├── tests/                     API test suite (pytest)
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/                      Next.js dashboard (shadcn/ui, Recharts)
+│   └── src/
+│       ├── app/                   Overview, segments, risk, retention, customers
+│       ├── components/            Charts, nav, theming, tables
+│       └── lib/                   API client, formatters, palette
+└── render.yaml                    Backend deployment blueprint
 ```
 
 ## Getting Started
@@ -220,6 +230,22 @@ docker build -f backend/Dockerfile -t churnaware-api .
 docker run -p 8000:8000 churnaware-api
 ```
 
+Run the Next.js dashboard (with the API running on port 8000):
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local     # points NEXT_PUBLIC_API_URL at the API
+npm run dev                     # http://localhost:3000
+```
+
+Run the API test suite:
+
+```bash
+pip install pytest httpx
+pytest backend/tests
+```
+
 ## API Reference
 
 | Method | Endpoint | Description |
@@ -234,9 +260,32 @@ docker run -p 8000:8000 churnaware-api
 | GET | /api/retention/actions | Retention action catalog with costs and effects |
 | GET | /api/retention/recommend/{id} | Live DQN recommendation with per-action Q-values |
 
+Two additional chart-data endpoints back the dashboard: `GET /api/kpi/distributions` (histogram bins for churn probability, spend, and frequency) and `GET /api/retention/evaluation` (the policy comparison table).
+
+## Deployment
+
+The two tiers deploy independently: the containerized API on Render, the Next.js dashboard on Vercel.
+
+### Backend on Render
+
+The repository ships a `render.yaml` blueprint and a production `backend/Dockerfile`. The container honors Render's injected `$PORT`, and on first boot the API rebuilds its SQLite store from the packaged feature CSVs, so no database file needs to be committed.
+
+1. Push the repository to GitHub.
+2. In the Render dashboard, choose New, then Blueprint, and point it at the repository. Render reads `render.yaml` and provisions the `churnaware-api` Docker web service with a health check on `/api/health`.
+3. After the first deploy, note the service URL, for example `https://churnaware-api.onrender.com`.
+
+CORS is open, so the deployed dashboard can call the API directly. On the free plan the service sleeps when idle, so the first request after a pause incurs a cold start.
+
+### Frontend on Vercel
+
+1. In Vercel, import the same repository and set the Root Directory to `frontend`. The framework preset is detected as Next.js automatically.
+2. Add an environment variable `NEXT_PUBLIC_API_URL` set to the Render service URL from the previous step.
+3. Deploy. Vercel builds and serves the dashboard on a public URL.
+
+To point the dashboard at the API, `NEXT_PUBLIC_API_URL` must be present at build time; redeploy after changing it. The Streamlit dashboard can optionally be hosted separately on Streamlit Community Cloud pointing at the same repository.
+
 ## Roadmap
 
-- React frontend consuming the API, deployed on Vercel, with the containerized backend on Render
 - PostgreSQL and a job queue replacing SQLite for the ingestion path
 - Transformer-based feedback intelligence: complaint topic mining and retrieval over review text
 - Off-policy evaluation of retention policies against logged interventions
