@@ -1,0 +1,38 @@
+{
+  "never_act": {
+    "mean_net_profit": 361.75470785196666,
+    "median_net_profit": 0.0,
+    "retention_rate": 0.0214,
+    "mean_orders": 0.5776,
+    "mean_incentive_spend": 0.0,
+    "episodes": 5000,
+    "uplift_vs_never_act": 0.0
+  },
+  "always_discount": {
+    "mean_net_profit": 378.6454219870148,
+    "median_net_profit": 0.0,
+    "retention_rate": 0.0352,
+    "mean_orders": 0.9362,
+    "mean_incentive_spend": 212.96321740298,
+    "episodes": 5000,
+    "uplift_vs_never_act": 16.890714135048142
+  },
+  "rule_based": {
+    "mean_net_profit": 430.1659614205438,
+    "median_net_profit": 0.0,
+    "retention_rate": 0.0306,
+    "mean_orders": 0.8308,
+    "mean_incentive_spend": 91.2083827881947,
+    "episodes": 5000,
+    "uplift_vs_never_act": 68.41125356857714
+  },
+  "dqn": {
+    "mean_net_profit": 423.880115628755,
+    "median_net_profit": 0.0,
+    "retention_rate": 0.0306,
+    "mean_orders": 0.8714,
+    "mean_incentive_spend": 126.69338350760073,
+    "episodes": 5000,
+    "uplift_vs_never_act": 62.125407776788336
+  }
+}

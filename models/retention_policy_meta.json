@@ -1,0 +1,81 @@
+{
+  "calibration": {
+    "segments": {
+      "At-Risk": {
+        "weekly_hazard": 0.06510708003776224,
+        "aov_log_mu": 7.3769372424147885,
+        "aov_log_sigma": 0.8502258792416979,
+        "delay_prob": 1.0,
+        "neg_feedback_prob": 0.3465346534653465,
+        "size": 303
+      },
+      "High-Value Champions": {
+        "weekly_hazard": 0.1892082184184452,
+        "aov_log_mu": 7.651197064816378,
+        "aov_log_sigma": 0.32956197570331264,
+        "delay_prob": 0.4389480363057599,
+        "neg_feedback_prob": 0.33435389512625285,
+        "size": 369
+      },
+      "Needs Attention": {
+        "weekly_hazard": 0.08791324461883439,
+        "aov_log_mu": 7.519585946542266,
+        "aov_log_sigma": 0.7018124006887049,
+        "delay_prob": 0.0,
+        "neg_feedback_prob": 0.32403369672943505,
+        "size": 1009
+      },
+      "Promising Customers": {
+        "weekly_hazard": 0.11946900871724256,
+        "aov_log_mu": 7.632716497404831,
+        "aov_log_sigma": 0.4338007762529329,
+        "delay_prob": 0.4280380176510523,
+        "neg_feedback_prob": 0.3231500339443313,
+        "size": 491
+      }
+    },
+    "margin_rate": 0.2777985074626866
+  },
+  "actions": {
+    "0": {
+      "name": "no_action",
+      "hazard_mult": 1.0,
+      "flat_cost": 0.0,
+      "discount_rate": 0.0,
+      "fulfil_cost": 0.0
+    },
+    "1": {
+      "name": "push_notification",
+      "hazard_mult": 1.15,
+      "flat_cost": 1.0,
+      "discount_rate": 0.0,
+      "fulfil_cost": 0.0
+    },
+    "2": {
+      "name": "free_delivery",
+      "hazard_mult": 1.4,
+      "flat_cost": 0.0,
+      "discount_rate": 0.0,
+      "fulfil_cost": 30.0
+    },
+    "3": {
+      "name": "discount_10pct",
+      "hazard_mult": 2.0,
+      "flat_cost": 0.0,
+      "discount_rate": 0.1,
+      "fulfil_cost": 0.0
+    }
+  },
+  "episode_weeks": 39,
+  "churn_weeks": 13,
+  "state_features": [
+    "recency_weeks_norm",
+    "log_frequency_norm",
+    "log_monetary_norm",
+    "sentiment",
+    "on_time_ratio",
+    "week_frac",
+    "fatigue",
+    "last_action_norm"
+  ]
+}
