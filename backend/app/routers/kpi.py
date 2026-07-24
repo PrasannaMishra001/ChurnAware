@@ -1,4 +1,5 @@
 # backend/app/routers/kpi.py
+import numpy as np
 import pandas as pd
 from fastapi import APIRouter
 
@@ -6,6 +7,14 @@ from backend.app.db import engine
 from backend.app.schemas import KPISummary
 
 router = APIRouter(prefix="/api/kpi", tags=["kpi"])
+
+
+def _histogram(series, bins, fmt):
+    counts, edges = np.histogram(series.dropna(), bins=bins)
+    return [
+        {"bin": f"{fmt(edges[i])}-{fmt(edges[i + 1])}", "count": int(counts[i])}
+        for i in range(len(counts))
+    ]
 
 
 @router.get("/summary", response_model=KPISummary)
@@ -37,4 +46,21 @@ def kpi_summary():
         "avg_churn_probability": float(stats['avg_churn_probability']),
         "high_risk_customers": int(stats['high_risk_customers']),
         "segment_distribution": dict(zip(seg['segment_name'], seg['n'].astype(int))),
+    }
+
+
+@router.get("/distributions")
+def distributions():
+    df = pd.read_sql(
+        "SELECT frequency, monetary, churn_proba, on_time_ratio FROM customers WHERE frequency > 0",
+        engine,
+    )
+    return {
+        "churn_proba": _histogram(df['churn_proba'], np.linspace(0, 1, 11), lambda v: f"{v:.1f}"),
+        "monetary": _histogram(df['monetary'], 12, lambda v: f"{v / 1000:.0f}k"),
+        "frequency": [
+            {"bin": str(int(k)), "count": int(v)}
+            for k, v in df['frequency'].value_counts().sort_index().items()
+        ],
+        "on_time_ratio": _histogram(df['on_time_ratio'], np.linspace(0, 1, 11), lambda v: f"{v:.1f}"),
     }

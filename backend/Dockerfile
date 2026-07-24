@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r backend/requirements.txt \
 COPY src src
 COPY backend backend
 COPY models models
+COPY reports reports
 COPY data/blinkit_products.csv data/blinkit_products.csv
 
 EXPOSE 8000

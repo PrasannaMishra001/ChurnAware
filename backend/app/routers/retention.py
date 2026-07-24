@@ -1,4 +1,7 @@
 # backend/app/routers/retention.py
+import json
+import os
+
 import pandas as pd
 from fastapi import APIRouter, HTTPException
 
@@ -8,10 +11,23 @@ from backend.app.services import recommend_actions, action_catalog
 
 router = APIRouter(prefix="/api/retention", tags=["retention"])
 
+REPORTS_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "..", "reports"
+)
+
 
 @router.get("/actions")
 def list_actions():
     return action_catalog()
+
+
+@router.get("/evaluation")
+def policy_evaluation():
+    path = os.path.normpath(os.path.join(REPORTS_DIR, "rl_evaluation.json"))
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Evaluation report not found")
+    with open(path) as f:
+        return json.load(f)
 
 
 @router.get("/recommend/{customer_id}", response_model=ActionRecommendation)
